@@ -1,10 +1,13 @@
 'use server'
 
-import { clerkClient, currentUser } from "@clerk/nextjs/server";
-import { db } from "./db";
-import { redirect } from "next/navigation";
-import { Agency, User, Plan } from "prisma/prisma-client";
-
+import { clerkClient, currentUser } from '@clerk/nextjs'
+import { db } from './db'
+import { redirect } from 'next/navigation'
+import {
+  Agency,
+  Plan,
+  User,
+} from '@prisma/client'
 
 
 export const getAuthUserDetails = async () => {
@@ -176,6 +179,7 @@ export const verifyAndAcceptInvitation = async () => {
   }
 }
 
+
 export const updateAgencyDetails = async (
   agencyId: string,
   agencyDetails: Partial<Agency>
@@ -220,7 +224,7 @@ export const initUser = async (newUser: Partial<User>) => {
 }
 
 export const upsertAgency = async (agency: Agency, price?: Plan) => {
-  if (!agency.companyEmail) return null
+  if (!agency.companyEmail) return null;
   try {
     const agencyDetails = await db.agency.upsert({
       where: {
@@ -267,8 +271,26 @@ export const upsertAgency = async (agency: Agency, price?: Plan) => {
           ],
         },
       },
+    });
+
+    // Return the ID of the created or updated agency
+    return agencyDetails.id;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+
+export const getNotificationAndUser = async (agencyId: string) => {
+  try {
+    const response = await db.notification.findMany({
+      where: { agencyId },
+      include: { User: true },
+      orderBy: {
+        createdAt: 'desc',
+      },
     })
-    return agencyDetails
+    return response
   } catch (error) {
     console.log(error)
   }
