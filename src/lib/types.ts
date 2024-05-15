@@ -1,5 +1,7 @@
 import { Prisma, Role } from "@prisma/client";
 
+
+
 export type NotificationWithUser =
   | ({
       User: {
