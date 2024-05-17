@@ -50,6 +50,7 @@ import {
 import { Button } from '../ui/button'
 import Loading from '../global/loading'
 
+
 type Props = {
   data?: Partial<Agency>
 }
@@ -67,7 +68,7 @@ const FormSchema = z.object({
   agencyLogo: z.string().min(1),
 })
 
-const AgencyDetails = ({ data }: Props) => {
+const AgencyDetails = ({data}: Props) => {
   const { toast } = useToast()
   const router = useRouter()
   const [deletingAgency, setDeletingAgency] = useState(false)
@@ -75,16 +76,16 @@ const AgencyDetails = ({ data }: Props) => {
     mode: 'onChange',
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      name: data?.name,
-      companyEmail: data?.companyEmail,
-      companyPhone: data?.companyPhone,
+      name: data?.name || '',
+      companyEmail: data?.companyEmail || '',
+      companyPhone: data?.companyPhone || '',
       whiteLabel: data?.whiteLabel || false,
-      address: data?.address,
-      city: data?.city,
-      zipCode: data?.zipCode,
-      state: data?.state,
-      country: data?.country,
-      agencyLogo: data?.agencyLogo,
+      address: data?.address || '',
+      city: data?.city || '',
+      zipCode: data?.zipCode || '',
+      state: data?.state || '',
+      country: data?.country || '',
+      agencyLogo: data?.agencyLogo || '',
     },
   })
   const isLoading = form.formState.isSubmitting
@@ -122,12 +123,13 @@ const AgencyDetails = ({ data }: Props) => {
           },
         }
       }
-
-      newUserData = await initUser({ role: 'AGENCY_OWNER' })
-      if (!data?.id) return
-
+  
+      newUserData = !data?.id ? await initUser({ role: 'AGENCY_OWNER' }) : null
+  
+      const agencyId = data?.id || v4()
+  
       const response = await upsertAgency({
-        id: data?.id ? data.id : v4(),
+        id: agencyId,
         address: values.address,
         agencyLogo: values.agencyLogo,
         city: values.city,
@@ -143,19 +145,20 @@ const AgencyDetails = ({ data }: Props) => {
         connectAccountId: '',
         goal: 5,
       })
+      
       toast({
         title: 'Created Agency',
       })
-      if (data?.id) return router.refresh()
-      if (response) {
-        return router.refresh()
+  
+      if (data?.id || response) {
+        router.refresh()
       }
     } catch (error) {
       console.log(error)
       toast({
         variant: 'destructive',
-        title: 'Oppse!',
-        description: 'could not create your agency',
+        title: 'Oops!',
+        description: 'Could not create your agency',
       })
     }
   }
@@ -178,7 +181,10 @@ const AgencyDetails = ({ data }: Props) => {
         description: 'could not delete your agency ',
       })
     }
-    setDeletingAgency(false)
+    finally {
+      setDeletingAgency(false)
+    }
+    
   }
 
   return (
